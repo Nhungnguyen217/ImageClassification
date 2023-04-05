@@ -1,7 +1,7 @@
 from PIL import Image
 import os
 
-path = "C:\\Users\\HP\\PycharmProjects\\Thigiacmaytinh\\ImageClassification\\trainSet\\myData"
+path = "/ImageClassification/trainSet/myData"
 
 i = 0
 # r=root, d=directories, f = files

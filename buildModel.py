@@ -1,72 +1,73 @@
-# step1: Import the required libraries
-
-import matplotlib.pyplot as plt
-import seaborn as sns
-
-# use of the Keras library for creating our model and training it
-import keras
-from keras.models import Sequential
-from keras.layers import Dense, Conv2D, MaxPool2D, Flatten, Dropout
-from keras.preprocessing.image import ImageDataGenerator
-from keras.optimizers import Adam
-
-from sklearn.metrics import classification_report, confusion_matrix
-
-import tensorflow as tf
-from PIL import Image
-import cv2
+# --- Importing Libraries
 import os
 
 import numpy as np
+import pandas as pd
+#Visualization
+import seaborn as sns
+import matplotlib.pyplot as plt
+sns.set_style('whitegrid')
+# %matplotlib inline
+from tensorflow.keras.utils import plot_model
 
-# step 2: Loading the data
-path = "C:\\Users\\HP\\PycharmProjects\\Thigiacmaytinh\\ImageClassification\\trainSet\\myData"
+# Splitting data
+from sklearn.model_selection import train_test_split
 
-labels = ['Speed limit (20km/h)',
-          'No passing',
-          'Right-of-way at the next intersection',
-          'Yield',
-          'Stop',
-          'Traffic signals',
-          'Children crossing',
-          'Ahead only',
-          'Go straight or left',
-          'Keep right',
-          ]
-img_size = 32
+# Metrics
+from sklearn.metrics import confusion_matrix, classification_report
 
-i = 0
-# r=root, d=directories, f = files
-for r, d, f in os.walk(path):
-    for file in f:
-        if file.endswith('.png'):
-            pat = os.path.join(r, file)
-            with Image.open(pat) as im:
-                if im.size != (32, 32):
-                    im = im.resize((32, 32), Image.LANCZOS)
-                im.save(pat.replace(".png", ".jpg"))
-            os.remove(pat)
-            i += 1
-            print(i, end='\r')
-        elif file.endswith('.jpg'):
-            pat=os.path.join(r, file)
-            with Image.open(pat) as im:
-                if im.size != (32, 32):
-                    im = im.resize((32, 32), Image.LANCZOS)
-                    im.save(pat)
-                    i += 1
-                    print(i, end='\r')
+# Deep Learning
+import tensorflow as tf
+print('TensoFlow Version: ', tf.__version__)
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
-def get_data(data_dir):
-    data = []
-    for label in labels:
-        path = os.path.join(data_dir, label)
-        class_num = labels.index(label)
-        for img in os.listdir(path):
-            try:
-                img_arr = cv2.imread(os.path.join(path, img))[..., ::-1]  # convert BGR to RGB format
-                resized_arr = cv2.resize(img_arr, (img_size, img_size))  # Reshaping images to preferred size
-                data.append([resized_arr, class_num])
-            except Exception as e:
-                print(e)
-    return np.array(data)
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Dense, Flatten, GlobalAveragePooling2D, BatchNormalization, Dropout
+from tensorflow.keras.applications.resnet import ResNet50
+
+from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping, ReduceLROnPlateau, CSVLogger
+
+# --- Reading Data of Class Labels
+path = 'trainSet'
+lab = pd.read_csv('trainSet/train.csv')
+
+# --- Visualizing countplot of the classes
+# Count PLot of the samples/observations w.r.t the classes
+d = dict()
+class_labels = dict()
+for dirs in os.listdir(path + '/myData'):
+    count = len(os.listdir(path+'/myData/'+dirs))
+    d[dirs+' => '+lab[lab.ClassId == int(dirs)].values[0][1]] = count
+    class_labels[int(dirs)] = lab[lab.ClassId == int(dirs)].values[0][1]
+
+plt.figure(figsize=(20, 50))
+sns.barplot(y=list(d.keys()), x = list(d.values()), palette='Set3')
+plt.ylabel('Label')
+plt.xlabel('Count of Samples/Observations');
+
+# --- Reading Image Data
+# input image dimensions
+img_rows, img_cols = 32, 32
+# The images are RGB.
+img_channels = 3
+nb_classes = len(class_labels.keys())
+
+datagen = ImageDataGenerator()
+data = datagen.flow_from_directory('trainSet/myData',
+                                    target_size=(32, 32),
+                                    batch_size=20041,
+                                    class_mode='categorical',
+                                    shuffle=True)
+
+X, y = data.next()
+# Labels are one hot encoded
+print(f"Data Shape   :{X.shape}\nLabels shape :{y.shape}")
+
+# ---Sample Images of Dataset
+fig, axes = plt.subplots(10, 10, figsize=(18, 18))
+for i ,ax in enumerate(axes.flat):
+    r = np.random.randint(X.shape[0])
+    ax.imshow(X[r].astype('uint8'))
+    ax.grid(False)
+    ax.axis('off')
+    ax.set_title('Label: '+str(np.argmax(y[r])))
