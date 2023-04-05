@@ -44,6 +44,7 @@ plt.figure(figsize=(20, 50))
 sns.barplot(y=list(d.keys()), x = list(d.values()), palette='Set3')
 plt.ylabel('Label')
 plt.xlabel('Count of Samples/Observations');
+plt.show()
 
 # --- Reading Image Data
 # input image dimensions
@@ -73,4 +74,36 @@ for i, ax in enumerate(axes.flat):
     ax.set_title('Label: '+str(np.argmax(y[r])))
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=5)
-    print("Train Shape: {}\nTest Shape : {}".format(X_train.shape, X_test.shape))
+    # print("Train Shape: {}\nTest Shape : {}".format(X_train.shape, X_test.shape))
+
+# --- Customising ResNet50 model
+resnet = ResNet50(weights= None, include_top=False, input_shape= (img_rows,img_cols,img_channels))
+
+x = resnet.output
+x = GlobalAveragePooling2D()(x)
+x = Dropout(0.5)(x)
+predictions = Dense(nb_classes, activation= 'softmax')(x)
+model = Model(inputs = resnet.input, outputs = predictions)
+
+model.summary()
+
+# ---Visualising Model Architecture
+plot_model(model, show_layer_names=True, show_shapes =True, to_file='model.png', dpi=350)
+print(plot_model)
+
+# --- Compiling the Model
+model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+
+#Creating Callbacks
+model_check = ModelCheckpoint('best_model.h5', monitor='val_accuracy', verbose=0, save_best_only=True, mode='max')
+
+early = EarlyStopping(monitor='val_accuracy', min_delta=0, patience=5, verbose=0, mode='max', restore_best_weights=True)
+
+reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=5, min_lr=0.001)
+
+csv_logger = CSVLogger('train_log.csv', separator=',')
+
+#Fitting Model with Data
+n_epochs = 50
+history =  model.fit(X_train, y_train,  batch_size = 32, epochs = n_epochs, verbose = 1,
+              validation_data = (X_test, y_test), callbacks = [model_check, early, reduce_lr, csv_logger])
