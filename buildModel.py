@@ -13,7 +13,7 @@ from keras.optimizers import Adam
 from sklearn.metrics import classification_report, confusion_matrix
 
 import tensorflow as tf
-
+from PIL import Image
 import cv2
 import os
 
@@ -35,6 +35,27 @@ labels = ['Speed limit (20km/h)',
           ]
 img_size = 32
 
+i = 0
+# r=root, d=directories, f = files
+for r, d, f in os.walk(path):
+    for file in f:
+        if file.endswith('.png'):
+            pat = os.path.join(r, file)
+            with Image.open(pat) as im:
+                if im.size != (32, 32):
+                    im = im.resize((32, 32), Image.LANCZOS)
+                im.save(pat.replace(".png", ".jpg"))
+            os.remove(pat)
+            i += 1
+            print(i, end='\r')
+        elif file.endswith('.jpg'):
+            pat=os.path.join(r, file)
+            with Image.open(pat) as im:
+                if im.size != (32, 32):
+                    im = im.resize((32, 32), Image.LANCZOS)
+                    im.save(pat)
+                    i += 1
+                    print(i, end='\r')
 
 def get_data(data_dir):
     data = []
