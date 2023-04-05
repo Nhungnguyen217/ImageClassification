@@ -20,6 +20,8 @@ import os
 import numpy as np
 
 # step 2: Loading the data
+path = "C:\\Users\\HP\\PycharmProjects\\Thigiacmaytinh\\ImageClassification\\trainSet\\myData"
+
 labels = ['Speed limit (20km/h)',
           'No passing',
           'Right-of-way at the next intersection',
