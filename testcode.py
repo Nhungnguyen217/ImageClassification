@@ -16,3 +16,4 @@ model.compile(loss='mse', optimizer=sgd)
 
 # 4. Train the model
 model.fit(X, y, epochs=100, batch_size=2)
+
