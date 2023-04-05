@@ -65,12 +65,9 @@ print(f"Data Shape   :{X.shape}\nLabels shape :{y.shape}")
 
 # ---Sample Images of Dataset
 fig, axes = plt.subplots(10, 10, figsize=(18, 18))
-for i, ax in enumerate(axes.flat):
+for i ,ax in enumerate(axes.flat):
     r = np.random.randint(X.shape[0])
     ax.imshow(X[r].astype('uint8'))
     ax.grid(False)
     ax.axis('off')
     ax.set_title('Label: '+str(np.argmax(y[r])))
-
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=5)
-    print("Train Shape: {}\nTest Shape : {}".format(X_train.shape, X_test.shape))
