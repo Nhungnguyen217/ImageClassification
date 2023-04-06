@@ -40,7 +40,7 @@ for dirs in os.listdir(path + '/myData'):
     d[dirs+' => '+lab[lab.ClassId == int(dirs)].values[0][1]] = count
     class_labels[int(dirs)] = lab[lab.ClassId == int(dirs)].values[0][1]
 
-plt.figure(figsize=(20, 50))
+plt.figure(figsize=(10, 10))
 sns.barplot(y=list(d.keys()), x = list(d.values()), palette='Set3')
 plt.ylabel('Label')
 plt.xlabel('Count of Samples/Observations');
@@ -88,8 +88,8 @@ model = Model(inputs = resnet.input, outputs = predictions)
 model.summary()
 
 # ---Visualising Model Architecture
-plot_model(model, show_layer_names=True, show_shapes =True, to_file='model.png', dpi=350)
-print(plot_model)
+# plot_model(model, show_layer_names=True, show_shapes =True, to_file='model.png', dpi=350)
+# print(plot_model)
 
 # --- Compiling the Model
 model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
@@ -107,3 +107,9 @@ csv_logger = CSVLogger('train_log.csv', separator=',')
 n_epochs = 50
 history =  model.fit(X_train, y_train,  batch_size = 32, epochs = n_epochs, verbose = 1,
               validation_data = (X_test, y_test), callbacks = [model_check, early, reduce_lr, csv_logger])
+
+# Saving the model
+model.save('TSC_model.h5')
+
+loss, acc = model.evaluate(X_test, y_test)
+print('Accuracy: ', acc, '\nLoss    : ', loss)
